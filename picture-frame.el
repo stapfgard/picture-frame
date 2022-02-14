@@ -62,7 +62,6 @@
 		:success
 			(cl-function (lambda (&key data &allow-other-keys) (when data
 				(with-current-buffer (get-buffer picture-frame-buffer)
-					(setq picture-frame-url-got url)
 					(erase-buffer)
 					(insert-image (create-image
 						(encode-coding-string data 'utf-8) 'jpeg t
@@ -72,6 +71,7 @@
 					))
 				)
 				(picture-frame-load)
+				(setq picture-frame-url-got url)
 				(setq picture-frame-frame-active t)
 			)))
 		:error
