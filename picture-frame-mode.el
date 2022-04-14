@@ -27,9 +27,10 @@
 (defun picture-frame-start ()
 	(interactive)
 	(message "picture-frame: started.")
-	(setq picture-frame-timer (run-with-timer picture-frame-timer-interval t (lambda ()
+	(setq picture-frame-timer (run-with-timer picture-frame-timer-interval 1 (lambda ()
 		(let ((url (funcall picture-frame-url (current-time))))
 			(when (not (eq url picture-frame-url-got)) (picture-frame-update url))
+			(setq picture-frame-url-got url)
 		)
 	)))
 )
@@ -50,7 +51,7 @@
 			'buffer-string
 		:success
 			(cl-function (lambda (&key data &allow-other-keys) (when data
-				(with-current-buffer (get-buffer picture-frame-buffer)
+				(with-current-buffer (get-buffer-create picture-frame-buffer)
 					(erase-buffer)
 					(insert-image (create-image
 						(encode-coding-string data 'utf-8) 'jpeg t
@@ -60,7 +61,7 @@
 					))
 				)
 				(picture-frame-load)
-				(setq picture-frame-url-got url)
+				;; (setq picture-frame-url-got url)
 				(setq picture-frame-frame-active t)
 			)))
 		:error
@@ -81,4 +82,4 @@
 	(if picture-frame-mode (picture-frame-start) (picture-frame-stop))
 )
 
-(provide 'picture-frame-mode)
+(provide 'picture-frame)
