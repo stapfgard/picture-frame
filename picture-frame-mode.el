@@ -2,7 +2,6 @@
 (require 'request)
 
 (defconst picture-frame-buffer " *picture-frame-buffer*")
-(defvar picture-frame-active nil)
 (defvar picture-frame-frame-active nil)
 (defvar picture-frame-frame-height (lambda () 450))
 (defvar picture-frame-frame-width (lambda () 590))
@@ -33,7 +32,6 @@
 			(when (not (eq url picture-frame-url-got)) (picture-frame-update url))
 		)
 	)))
-	(setq picture-frame-active t)
 )
 
 (defun picture-frame-stop ()
@@ -41,16 +39,7 @@
 	(when picture-frame-timer (cancel-timer picture-frame-timer))
 	(when (posframe-workable-p) (posframe-delete picture-frame-buffer))
 	(setq picture-frame-frame-active nil)
-	(setq picture-frame-active nil)
 	(message "picture-frame stopped.")
-)
-
-(defun picture-frame-toggle ()
-	(interactive)
-	(if picture-frame-active
-		(picture-frame-stop)
-		(picture-frame-start)
-	)
 )
 
 (defun picture-frame-update (url)
@@ -85,4 +74,11 @@
 ;; 	(posframe-refresh picture-frame-buffer)
 ;; ))
 
-(provide 'picture-frame)
+(define-minor-mode picture-frame-mode
+	"Toggle picture frame mode."
+	:lighter
+	  " picture frame"
+	(if picture-frame-mode (picture-frame-start) (picture-frame-stop))
+)
+
+(provide 'picture-frame-mode)
