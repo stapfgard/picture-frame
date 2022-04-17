@@ -2,7 +2,7 @@
 (require 'request)
 
 (defconst picture-frame-buffer " *picture-frame-buffer*")
-(defvar picture-frame-frame-active nil)
+(defvar picture-frame-data nil)
 (defvar picture-frame-frame-height (lambda () 450))
 (defvar picture-frame-frame-width (lambda () 590))
 (defvar picture-frame-poshandler 'posframe-poshandler-frame-bottom-right-corner)
@@ -13,13 +13,19 @@
 
 (defun picture-frame-load ()
 	(when (posframe-workable-p)
-		(if picture-frame-frame-active
-			(posframe-refresh picture-frame-buffer)
-			(posframe-show picture-frame-buffer
-				:background-color "white"
-				:keep-ratio t
-				:poshandler picture-frame-poshandler
+		(with-current-buffer (get-buffer-create picture-frame-buffer)
+			(erase-buffer)
+			(insert-image
+				(create-image (encode-coding-string picture-frame-data 'utf-8) nil t
+					:height (funcall picture-frame-frame-height)
+					:pointer 'arrow
+					:width (funcall picture-frame-frame-width)
+				)
 			)
+		)
+		(posframe-show picture-frame-buffer
+			:keep-ratio t
+			:poshandler picture-frame-poshandler
 		)
 	)
 )
@@ -29,7 +35,7 @@
 	(message "picture-frame: started.")
 	(setq picture-frame-timer (run-with-timer picture-frame-timer-interval 1 (lambda ()
 		(let ((url (funcall picture-frame-url (current-time))))
-			(when (not (eq url picture-frame-url-got)) (picture-frame-update url))
+			(when (not (string= url picture-frame-url-got)) (picture-frame-update url))
 			(setq picture-frame-url-got url)
 		)
 	)))
@@ -37,9 +43,9 @@
 
 (defun picture-frame-stop ()
 	(interactive)
+	(setq picture-frame-url-got nil)
 	(when picture-frame-timer (cancel-timer picture-frame-timer))
 	(when (posframe-workable-p) (posframe-delete picture-frame-buffer))
-	(setq picture-frame-frame-active nil)
 	(message "picture-frame stopped.")
 )
 
@@ -50,30 +56,22 @@
 		:parser
 			'buffer-string
 		:success
-			(cl-function (lambda (&key data &allow-other-keys) (when data
-				(with-current-buffer (get-buffer-create picture-frame-buffer)
-					(erase-buffer)
-					(insert-image (create-image
-						(encode-coding-string data 'utf-8) 'jpeg t
-						:height (funcall picture-frame-frame-height)
-						:pointer 'arrow
-						:width (funcall picture-frame-frame-width)
-					))
+			(cl-function (lambda (&key data &allow-other-keys)
+				(when data
+					(setq picture-frame-data data)
+					(picture-frame-load)
 				)
-				(picture-frame-load)
-				;; (setq picture-frame-url-got url)
-				(setq picture-frame-frame-active t)
-			)))
+			))
 		:error
 			(cl-function (lambda (&rest args &key error-thrown &allow-other-keys)
-				(message "picture-frame error: %S" error-thrown)
+				(message "picture-frame: error occured. (%s)" error-thrown)
 			))
 	)
 )
-;;TODO: Resize event.
-;; (add-to-list 'window-size-change-functions (lambda (frame)
-;; 	(posframe-refresh picture-frame-buffer)
-;; ))
+
+(add-hook 'window-size-change-functions (lambda (frame)
+	(when (not (null picture-frame-data)) (picture-frame-load))
+))
 
 (define-minor-mode picture-frame-mode
 	"Toggle picture frame mode."
