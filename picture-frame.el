@@ -10,7 +10,6 @@
 (defcustom picture-frame-timer-interval 1 "timer interval")
 (defcustom picture-frame-url (lambda () (message "No picture-frame-url.")) "url")
 (defvar picture-frame-data nil)
-(defvar picture-frame-frame nil)
 (defvar picture-frame-poshandler 'posframe-poshandler-frame-bottom-right-corner)
 (defvar picture-frame-timer nil)
 (defvar picture-frame-url-got nil)
@@ -19,7 +18,7 @@
 	(when (posframe-workable-p)
 		(let*
 			(
-				(size (funcall picture-frame-image-size picture-frame-frame))
+				(size (funcall picture-frame-image-size (frame-root-window)))
 				(width (nth 0 size))
 				(height (nth 1 size))
 			)
@@ -83,10 +82,7 @@
 	)
 )
 
-(add-hook 'window-size-change-functions (lambda (frame)
-	(setq picture-frame-frame frame)
-	(when picture-frame-mode (picture-frame-load))
-))
+(add-hook 'window-size-change-functions (lambda (frame) (when picture-frame-mode (picture-frame-load))))
 
 ;;;###autoload
 (define-minor-mode picture-frame-mode
