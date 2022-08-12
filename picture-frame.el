@@ -89,6 +89,8 @@
 	"Toggle picture frame mode."
 	:lighter
 	  " picture frame"
+	:global
+		t
 	(if picture-frame-mode (picture-frame-start) (picture-frame-stop))
 )
 
