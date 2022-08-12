@@ -88,6 +88,7 @@
 	(when picture-frame-mode (picture-frame-load))
 ))
 
+;;;###autoload
 (define-minor-mode picture-frame-mode
 	"Toggle picture frame mode."
 	:lighter
